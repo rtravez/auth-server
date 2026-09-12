@@ -6,55 +6,214 @@
     <title>Auth Server</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #263238;
+            --muted: #718096;
+            --paper: #f4f7fb;
+            --panel: #ffffff;
+            --navy: #132238;
+            --navy-soft: #1c3150;
+            --blue: #2f80ed;
+            --blue-soft: #e9f2ff;
+            --line: #e6ebf2;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--ink);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #f8f9fa 0%, #eef3ff 100%);
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
         }
 
         .hero {
-            padding: 5rem 0;
+            max-width: 1440px;
+            padding: clamp(1.5rem, 4vw, 4rem) clamp(1rem, 3vw, 3rem);
         }
 
         .status-card {
-            max-width: 500px;
+            max-width: 27rem;
+            border: 1px solid var(--line) !important;
+            border-radius: 10px;
+            background: var(--panel);
+            box-shadow: 0 0.75rem 2rem rgba(19, 34, 56, 0.08) !important;
+        }
+
+        .brand-lockup {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: var(--navy);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+        }
+
+        .brand-symbol {
+            display: inline-grid;
+            width: 2.5rem;
+            height: 2.5rem;
+            place-items: center;
+            border-radius: 10px;
+            color: #fff;
+            background: var(--navy);
+            font-size: 0.78rem;
+        }
+
+        .eyebrow {
+            color: var(--blue);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2 {
+            color: var(--navy);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        h1 {
+            max-width: 42rem;
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            line-height: 1.04;
+        }
+
+        .hero-copy {
+            max-width: 38rem;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .primary-action,
+        .secondary-action {
+            min-height: 3.25rem;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+        }
+
+        .primary-action {
+            border-color: var(--blue);
+            background: var(--blue);
+            box-shadow: 0 0.5rem 1rem rgba(47, 128, 237, 0.2);
+        }
+
+        .primary-action:hover,
+        .primary-action:focus-visible {
+            border-color: #2468d8;
+            background: #2468d8;
+        }
+
+        .secondary-action {
+            border-color: var(--line);
+            color: var(--navy);
+            background: var(--panel);
+        }
+
+        .secondary-action:hover,
+        .secondary-action:focus-visible {
+            border-color: var(--blue);
+            color: var(--blue);
+            background: var(--blue-soft);
+        }
+
+        .status-card .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .status-card h2 {
+            font-size: 1.25rem;
+        }
+
+        .status-badge {
+            border-radius: 999px;
+            color: #19734a;
+            background: #e6f7ef;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .status-card .list-group-item {
+            border-color: var(--line);
+            color: var(--ink);
+            background: transparent;
+            padding-top: 0.85rem;
+            padding-bottom: 0.85rem;
+        }
+
+        .status-value {
+            border-radius: 6px;
+            color: var(--blue);
+            background: var(--blue-soft);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 991.98px) {
+            .hero .row {
+                min-height: auto !important;
+                padding-top: 3rem;
+                padding-bottom: 3rem;
+            }
+
+            .status-card {
+                margin-top: 2rem;
+            }
         }
     </style>
 </head>
 <body>
     <main class="container hero">
-        <div class="row align-items-center min-vh-100">
+        <div class="row align-items-center min-vh-100 g-5">
             <div class="col-lg-7">
-                <span class="badge bg-primary-subtle text-primary-emphasis mb-3 px-3 py-2 rounded-pill">Auth Server</span>
-                <h1 class="display-4 fw-bold mb-3">Servidor de autorización listo</h1>
-                <p class="lead text-muted mb-4">
+                <div class="brand-lockup mb-5">
+                    <span class="brand-symbol">MSC</span>
+                    <span>AUTH SERVER</span>
+                </div>
+                <p class="eyebrow mb-3">Auth Server</p>
+                <h1 class="mb-4">Servidor de autorización listo</h1>
+                <p class="hero-copy mb-4">
                     El sistema de autenticación y autorización está disponible para gestionar acceso seguro
                     a tus aplicaciones con OAuth 2.0 y OpenID Connect.
                 </p>
                 <div class="d-flex flex-wrap gap-3">
-                    <a href="/authServices/login" class="btn btn-primary btn-lg">Iniciar sesión</a>
-                    <a href="#status" class="btn btn-outline-primary btn-lg">Ver estado</a>
+                    <a href="/authServices/login" class="btn btn-primary primary-action">Iniciar sesión <span aria-hidden="true">→</span></a>
+                    <a href="#status" class="btn secondary-action">Ver estado</a>
                 </div>
             </div>
             <div class="col-lg-5">
-                <div id="status" class="card shadow-sm border-0 status-card mx-auto">
+                <div id="status" class="card status-card mx-auto">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2 class="h5 mb-0">Estado del servicio</h2>
-                            <span class="badge bg-success-subtle text-success-emphasis">Online</span>
+                            <span class="badge status-badge px-3 py-2">Online</span>
                         </div>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <span>API</span>
-                                <span class="badge text-bg-light">OK</span>
+                                <span class="badge status-value px-2 py-1">OK</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <span>Autenticación</span>
-                                <span class="badge text-bg-light">OK</span>
+                                <span class="badge status-value px-2 py-1">OK</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                                 <span>OAuth/OIDC</span>
-                                <span class="badge text-bg-light">Activo</span>
+                                <span class="badge status-value px-2 py-1">Activo</span>
                             </li>
                         </ul>
                     </div>
