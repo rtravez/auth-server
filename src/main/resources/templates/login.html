@@ -7,47 +7,241 @@
     <title th:text="#{login.title}">Iniciar sesión | Auth Server</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #263238;
+            --muted: #718096;
+            --paper: #f4f7fb;
+            --panel: #ffffff;
+            --navy: #132238;
+            --navy-soft: #1c3150;
+            --blue: #2f80ed;
+            --blue-soft: #e9f2ff;
+            --line: #e6ebf2;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--ink);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
-            background: #f8f9fa;
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
         }
 
         .login-shell {
-            max-width: 1100px;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+            max-width: 1440px;
+            min-height: calc(100vh - 3rem);
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+
+        .login-shell > .row {
+            min-height: calc(100vh - 3rem);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--panel);
+            box-shadow: 0 0.75rem 2rem rgba(19, 34, 56, 0.08) !important;
         }
 
         .brand-panel {
-            min-height: 620px;
+            position: relative;
+            min-height: 44rem;
+            overflow: hidden;
+            padding: clamp(2rem, 5vw, 5rem) !important;
+            background: var(--navy) !important;
+        }
+
+        .brand-panel::before,
+        .brand-panel::after {
+            position: absolute;
+            content: '';
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 50%;
+        }
+
+        .brand-panel::before {
+            width: 32rem;
+            height: 32rem;
+            right: -15rem;
+            bottom: -9rem;
+        }
+
+        .brand-panel::after {
+            width: 48rem;
+            height: 48rem;
+            right: -22rem;
+            bottom: -17rem;
+        }
+
+        .brand-content,
+        .brand-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-mark {
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+        }
+
+        .brand-content {
+            max-width: 35rem;
+            margin: auto 0;
+            padding: 4rem 0;
+        }
+
+        .eyebrow {
+            color: #87a4c8;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .brand-content h1 {
+            max-width: 29rem;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.8rem, 5vw, 5rem);
+            font-weight: 700;
+            letter-spacing: -0.045em;
+            line-height: 1.04;
+        }
+
+        .brand-copy {
+            max-width: 25rem;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .brand-footer {
+            color: rgba(255, 255, 255, 0.58);
+        }
+
+        .login-form-panel {
+            background: var(--panel) !important;
+            padding: clamp(2rem, 5vw, 5rem) !important;
+        }
+
+        .login-form-content {
+            width: 100%;
+            max-width: 27rem;
+            margin: auto;
+        }
+
+        .login-form-content h2 {
+            color: var(--navy);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .login-form-content .instructions {
+            color: var(--muted) !important;
+            line-height: 1.7;
+        }
+
+        .form-label {
+            color: var(--navy);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            min-height: 3.25rem;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--ink);
+            background: var(--panel);
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control::placeholder {
+            color: #9aa8bb;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 0.2rem rgba(47, 128, 237, 0.14);
+        }
+
+        .login-submit {
+            min-height: 3.5rem;
+            border: 0;
+            border-radius: 8px;
+            background: var(--blue);
+            box-shadow: 0 0.5rem 1rem rgba(47, 128, 237, 0.2);
+            font-weight: 700;
+        }
+
+        .login-submit:hover,
+        .login-submit:focus-visible {
+            background: #2468d8;
+            box-shadow: 0 0.75rem 1.25rem rgba(47, 128, 237, 0.25);
+        }
+
+        .alert {
+            border-radius: 8px;
         }
 
         @media (max-width: 767.98px) {
+            .login-shell,
+            .login-shell > .row {
+                min-height: 100vh;
+            }
+
+            .login-shell {
+                padding: 0;
+            }
+
+            .login-shell > .row {
+                border-radius: 0;
+            }
+
             .brand-panel {
-                min-height: auto;
+                min-height: 31rem;
+            }
+
+            .brand-content {
+                padding: 3rem 0;
+            }
+
+            .login-form-panel {
+                min-height: 38rem;
             }
         }
     </style>
 </head>
 
-<body class="d-flex align-items-center py-4 bg-light">
+<body class="d-flex align-items-center">
     <main class="container login-shell">
-        <div class="row g-0 shadow-lg overflow-hidden rounded-4">
-            <section class="col-md-5 bg-dark text-white d-flex flex-column justify-content-between p-5 brand-panel">
-                <div>
-                    <div class="brand-mark fw-bold text-uppercase" th:text="#{login.brand}">AUTH SERVER</div>
-                    <div class="mt-5 display-6 fw-semibold" th:text="#{login.tagline}">Tu identidad, bajo tu control.</div>
-                    <p class="mt-3 mb-0 text-white-50" th:text="#{login.description}">Accede de forma segura para continuar con la aplicación.</p>
+        <div class="row g-0 overflow-hidden">
+            <section class="col-md-5 text-white d-flex flex-column justify-content-between brand-panel">
+                <div class="brand-content">
+                    <div class="brand-mark text-uppercase" th:text="#{login.brand}">AUTH SERVER</div>
+                    <h1 class="mt-5 mb-4" th:text="#{login.tagline}">Tu identidad, bajo tu control.</h1>
+                    <p class="brand-copy mb-0" th:text="#{login.description}">Accede de forma segura para continuar con la aplicación.</p>
                 </div>
-                <small class="text-white-50" th:text="#{login.protocols}">OAuth 2.0 · OpenID Connect</small>
+                <small class="brand-footer" th:text="#{login.protocols}">OAuth 2.0 · OpenID Connect</small>
             </section>
-            <section class="col-md-7 bg-white d-flex align-items-center p-5">
-                <div class="w-100" style="max-width: 420px; margin: auto;">
-                    <div class="text-primary text-uppercase fw-bold mb-2" style="letter-spacing: 0.15rem; font-size: 0.75rem;"
+            <section class="col-md-7 d-flex align-items-center login-form-panel">
+                <div class="login-form-content">
+                    <div class="eyebrow mb-2"
                         th:text="#{login.welcome}">Bienvenido</div>
-                    <h1 class="h2 fw-bold mb-2" th:text="#{login.heading}">Iniciar sesión</h1>
-                    <p class="text-muted mb-4" th:text="#{login.instructions}">Ingresa tus credenciales para continuar.</p>
+                    <h2 class="mb-2" th:text="#{login.heading}">Iniciar sesión</h2>
+                    <p class="instructions mb-4" th:text="#{login.instructions}">Ingresa tus credenciales para continuar.</p>
 
                     <div th:if="${param.error}" class="alert alert-danger" role="alert">
                         <span th:text="#{login.error}">Usuario o contraseña incorrectos.</span>
@@ -71,7 +265,7 @@
                                 autocomplete="current-password" th:placeholder="#{login.password.placeholder}"
                                 placeholder="Ingresa tu contraseña" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-semibold"
+                        <button type="submit" class="btn btn-primary w-100 login-submit"
                             th:text="#{login.submit}">Continuar</button>
                     </form>
                 </div>
