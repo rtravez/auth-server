@@ -60,7 +60,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:4200/callback")
                 .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
-                .scope("openid").scope("profile").scope("read").scope("write")
+                .scope("openid").scope("profile").scope("offline_access").scope("read").scope("write")
                 .clientSettings(ClientSettings.builder().requireProofKey(true).requireAuthorizationConsent(false).build())
                 .tokenSettings(TokenSettings.builder().accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                         .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
