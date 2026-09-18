@@ -36,12 +36,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Configuration
 public class AuthorizationServerConfig {
@@ -60,7 +61,10 @@ public class AuthorizationServerConfig {
 
     @Bean
     RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-        RegisteredClient client = RegisteredClient.withId("rtravez-web")
+        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
+        RegisteredClient existingClient = repository.findByClientId(SecurityConstants.CLIENT_ID);
+        String registeredClientId = existingClient != null ? existingClient.getId() : "rtravez-web";
+        RegisteredClient client = RegisteredClient.withId(registeredClientId)
                 .clientId(SecurityConstants.CLIENT_ID)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
@@ -75,10 +79,7 @@ public class AuthorizationServerConfig {
                         .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
                         .reuseRefreshTokens(false).build())
                 .build();
-        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
-        if (repository.findByClientId(client.getClientId()) == null) {
-            repository.save(client);
-        }
+        repository.save(client);
         return repository;
     }
 
@@ -95,7 +96,7 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    JWKSource<SecurityContext> jwkSource() throws Exception {
+    JWKSource<SecurityContext> jwkSource() throws NoSuchAlgorithmException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         KeyPair keyPair = generator.generateKeyPair();
@@ -127,8 +128,8 @@ public class AuthorizationServerConfig {
                     context.getClaims().claim("name", user.getPerson().getName());
                     context.getClaims().claim("lastname", user.getPerson().getLastname());
                     context.getClaims().claim("identification", user.getPerson().getIdentification());
-                    List<String> roles = user.getRoleUsers().stream()
-                            .map(roleUser -> roleUser.getRole().getName()).collect(Collectors.toList());
+                        List<String> roles = new ArrayList<>(user.getRoleUsers().stream()
+                            .map(roleUser -> roleUser.getRole().getName()).toList());
                     context.getClaims().claim("roles", roles);
                 }
             }
