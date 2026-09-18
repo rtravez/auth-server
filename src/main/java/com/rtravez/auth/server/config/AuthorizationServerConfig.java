@@ -6,11 +6,15 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.rtravez.auth.server.entity.UserEntity;
 import com.rtravez.auth.server.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -47,128 +51,137 @@ import java.util.List;
 import java.util.UUID;
 
 @Configuration
+@RequiredArgsConstructor 
 public class AuthorizationServerConfig {
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-    private String issuerUri;
+        @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
+        private String issuerUri;
 
-    @Bean
+        private final PasswordEncoder passwordEncoder;
+
+        @Bean
         @Order(1)
-    SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer
-                .authorizationServer();
-        http.securityMatcher(authorizationServer.getEndpointsMatcher())
-                .with(authorizationServer, configurer -> configurer.oidc(Customizer.withDefaults()))
-                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
-        return http.formLogin(form -> form.loginPage("/login")).cors(Customizer.withDefaults()).build();
-    }
+        SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+                OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer
+                                .authorizationServer();
+                http.securityMatcher(authorizationServer.getEndpointsMatcher())
+                                .with(authorizationServer, configurer -> configurer.oidc(Customizer.withDefaults()))
+                                .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
+                return http.formLogin(form -> form.loginPage("/login")).cors(Customizer.withDefaults()).build();
+        }
 
-    @Bean
-    RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
-        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
-        RegisteredClient existingClient = repository.findByClientId(SecurityConstants.MSC_WEB_CLIENT_ID);
-        String registeredClientId = existingClient != null ? existingClient.getId() : "MSC-WEB";
-        RegisteredClient client = RegisteredClient.withId(registeredClientId)
-                .clientId(SecurityConstants.MSC_WEB_CLIENT_ID)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:4200/callback")
-                .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
-                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope("offline_access").scope("read").scope("write")
-                .clientSettings(ClientSettings.builder()
-                        .requireProofKey(true)
-                        .requireAuthorizationConsent(false).build())
-                .tokenSettings(TokenSettings.builder().accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
-                        .reuseRefreshTokens(false).build())
-                .build();
-        repository.save(client);
+        @Bean
+        RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
+                JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
+                RegisteredClient existingClient = repository.findByClientId(SecurityConstants.MSC_WEB_CLIENT_ID);
+                String registeredClientId = existingClient != null ? existingClient.getId() : "MSC-WEB";
+                RegisteredClient client = RegisteredClient.withId(registeredClientId)
+                                .clientId(SecurityConstants.MSC_WEB_CLIENT_ID)
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                                .redirectUri("http://localhost:4200/callback")
+                                .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
+                                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope("offline_access")
+                                .scope("read").scope("write")
+                                .clientSettings(ClientSettings.builder()
+                                                .requireProofKey(true)
+                                                .requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder()
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                                .accessTokenTimeToLive(Duration.ofHours(1))
+                                                .refreshTokenTimeToLive(Duration.ofDays(1))
+                                                .reuseRefreshTokens(false).build())
+                                .build();
+                repository.save(client);
 
-        RegisteredClient existingMscClient = repository.findByClientId(SecurityConstants.MSC_WS_CLIENT_ID);
-        String registeredMscClientId = existingMscClient != null ? existingMscClient.getId() : "MSC-WS";
-        RegisteredClient mscClient = RegisteredClient.withId(registeredMscClientId)
-                .clientId(SecurityConstants.MSC_WS_CLIENT_ID)
-                .clientSecret(SecurityConstants.MSC_CLIENT_SECRET)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
-                .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(false).build())
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofHours(1)).build())
-                .build();
-        repository.save(mscClient);
+                RegisteredClient existingMscClient = repository.findByClientId(SecurityConstants.MSC_WS_CLIENT_ID);
+                String registeredMscClientId = existingMscClient != null ? existingMscClient.getId() : "MSC-WS";
+                RegisteredClient mscClient = RegisteredClient.withId(registeredMscClientId)
+                                .clientId(SecurityConstants.MSC_WS_CLIENT_ID)
+                                .clientSecret(passwordEncoder.encode(SecurityConstants.MSC_CLIENT_SECRET))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
+                                .clientSettings(ClientSettings.builder()
+                                                .requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder()
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                                .accessTokenTimeToLive(Duration.ofHours(1)).build())
+                                .build();
+                repository.save(mscClient);
 
-        RegisteredClient existingMsaClient = repository.findByClientId(SecurityConstants.MSA_WS_CLIENT_ID);
-        String registeredMsaClientId = existingMsaClient != null ? existingMsaClient.getId() : "MSA-WS";
-        RegisteredClient msaClient = RegisteredClient.withId(registeredMsaClientId)
-                .clientId(SecurityConstants.MSA_WS_CLIENT_ID)
-                .clientSecret(SecurityConstants.MSA_CLIENT_SECRET)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
-                .clientSettings(ClientSettings.builder()
-                        .requireAuthorizationConsent(false).build())
-                .tokenSettings(TokenSettings.builder()
-                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-                        .accessTokenTimeToLive(Duration.ofHours(1)).build())
-                .build();
-        repository.save(msaClient);
+                RegisteredClient existingMsaClient = repository.findByClientId(SecurityConstants.MSA_WS_CLIENT_ID);
+                String registeredMsaClientId = existingMsaClient != null ? existingMsaClient.getId() : "MSA-WS";
+                RegisteredClient msaClient = RegisteredClient.withId(registeredMsaClientId)
+                                .clientId(SecurityConstants.MSA_WS_CLIENT_ID)
+                                .clientSecret(passwordEncoder.encode(SecurityConstants.MSA_CLIENT_SECRET))
+                                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
+                                .clientSettings(ClientSettings.builder()
+                                                .requireAuthorizationConsent(false).build())
+                                .tokenSettings(TokenSettings.builder()
+                                                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                                                .accessTokenTimeToLive(Duration.ofHours(1)).build())
+                                .build();
+                repository.save(msaClient);
 
-        return repository;
-    }
+                return repository;
+        }
 
-    @Bean
-    OAuth2AuthorizationService authorizationService(
-            JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
-        return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
-    }
+        @Bean
+        OAuth2AuthorizationService authorizationService(
+                        JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+                return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
+        }
 
-    @Bean
-    OAuth2AuthorizationConsentService authorizationConsentService(
-            JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
-        return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
-    }
+        @Bean
+        OAuth2AuthorizationConsentService authorizationConsentService(
+                        JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+                return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
+        }
 
-    @Bean
-    JWKSource<SecurityContext> jwkSource() throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(2048);
-        KeyPair keyPair = generator.generateKeyPair();
-        RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
-                .privateKey((RSAPrivateKey) keyPair.getPrivate()).keyID(UUID.randomUUID().toString()).build();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return (selector, context) -> selector.select(jwkSet);
-    }
+        @Bean
+        JWKSource<SecurityContext> jwkSource() throws NoSuchAlgorithmException {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                generator.initialize(2048);
+                KeyPair keyPair = generator.generateKeyPair();
+                RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                                .privateKey((RSAPrivateKey) keyPair.getPrivate()).keyID(UUID.randomUUID().toString())
+                                .build();
+                JWKSet jwkSet = new JWKSet(rsaKey);
+                return (selector, context) -> selector.select(jwkSet);
+        }
 
-    @Bean
-    JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-    }
+        @Bean
+        JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+                return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+        }
 
-    @Bean
-    AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().issuer(issuerUri).build();
-    }
+        @Bean
+        AuthorizationServerSettings authorizationServerSettings() {
+                return AuthorizationServerSettings.builder().issuer(issuerUri).build();
+        }
 
-    @Bean
-    OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(UserService userService) {
-        return context -> {
-            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())
-                    || OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-                UserEntity user = userService.findByUserByUsername(context.getPrincipal().getName()).orElse(null);
-                if (user != null) {
-                    context.getClaims().claim("username", user.getUsername());
-                    context.getClaims().claim("status", user.getStatus());
-                    context.getClaims().claim("name", user.getPerson().getName());
-                    context.getClaims().claim("lastname", user.getPerson().getLastname());
-                    context.getClaims().claim("identification", user.getPerson().getIdentification());
-                    List<String> roles = new ArrayList<>(user.getRoleUsers().stream()
-                            .map(roleUser -> roleUser.getRole().getName()).toList());
-                    context.getClaims().claim("roles", roles);
-                }
-            }
-        };
-    }
+        @Bean
+        OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer(UserService userService) {
+                return context -> {
+                        if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())
+                                        || OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
+                                UserEntity user = userService.findByUserByUsername(context.getPrincipal().getName())
+                                                .orElse(null);
+                                if (user != null) {
+                                        context.getClaims().claim("username", user.getUsername());
+                                        context.getClaims().claim("status", user.getStatus());
+                                        context.getClaims().claim("name", user.getPerson().getName());
+                                        context.getClaims().claim("lastname", user.getPerson().getLastname());
+                                        context.getClaims().claim("identification",
+                                                        user.getPerson().getIdentification());
+                                        List<String> roles = new ArrayList<>(user.getRoleUsers().stream()
+                                                        .map(roleUser -> roleUser.getRole().getName()).toList());
+                                        context.getClaims().claim("roles", roles);
+                                }
+                        }
+                };
+        }
 }
