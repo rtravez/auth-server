@@ -1,15 +1,15 @@
 package com.rtravez.auth.server;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 
 @SpringBootTest
 class AuthServerApplicationTests {
@@ -23,7 +23,7 @@ class AuthServerApplicationTests {
 
 	@Test
 	void webClientIsConfiguredForRefreshTokens() {
-		var client = registeredClientRepository.findByClientId("rtravez-web");
+		var client = registeredClientRepository.findByClientId("MSC-WEB");
 
 		assertThat(client).isNotNull();
 		if (client == null) {
@@ -37,6 +37,32 @@ class AuthServerApplicationTests {
 		assertThat(client.getClientSettings().isRequireProofKey()).isTrue();
 		assertThat(client.getScopes()).contains("offline_access");
 		assertThat(client.getTokenSettings().getRefreshTokenTimeToLive()).isEqualTo(Duration.ofDays(1));
+	}
+
+	@Test
+	void mscClientIsConfiguredForClientCredentials() {
+		var client = registeredClientRepository.findByClientId("MSC-WS");
+
+		assertThat(client).isNotNull();
+		if (client == null) {
+			return;
+		}
+		assertThat(client.getClientAuthenticationMethods()).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
+		assertThat(client.getAuthorizationGrantTypes()).contains(AuthorizationGrantType.CLIENT_CREDENTIALS);
+		assertThat(client.getScopes()).contains("openid", "profile", "email");
+	}
+
+	@Test
+	void msaClientIsConfiguredForClientCredentials() {
+		var client = registeredClientRepository.findByClientId("MSA-WS");
+
+		assertThat(client).isNotNull();
+		if (client == null) {
+			return;
+		}
+		assertThat(client.getClientAuthenticationMethods()).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
+		assertThat(client.getAuthorizationGrantTypes()).contains(AuthorizationGrantType.CLIENT_CREDENTIALS);
+		assertThat(client.getScopes()).contains("openid", "profile", "email");
 	}
 
 }

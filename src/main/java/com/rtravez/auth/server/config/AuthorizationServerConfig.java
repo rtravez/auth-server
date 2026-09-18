@@ -13,6 +13,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -50,9 +51,10 @@ public class AuthorizationServerConfig {
     private String issuerUri;
 
     @Bean
-    //@Order(1)
+    // @Order(1)
     SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer.authorizationServer();
+        OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer
+                .authorizationServer();
         http.securityMatcher(authorizationServer.getEndpointsMatcher())
                 .with(authorizationServer, configurer -> configurer.oidc(Customizer.withDefaults()))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated());
@@ -62,24 +64,57 @@ public class AuthorizationServerConfig {
     @Bean
     RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
         JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
-        RegisteredClient existingClient = repository.findByClientId(SecurityConstants.CLIENT_ID);
-        String registeredClientId = existingClient != null ? existingClient.getId() : "rtravez-web";
+        RegisteredClient existingClient = repository.findByClientId(SecurityConstants.MSC_WEB_CLIENT_ID);
+        String registeredClientId = existingClient != null ? existingClient.getId() : "MSC-WEB";
         RegisteredClient client = RegisteredClient.withId(registeredClientId)
-                .clientId(SecurityConstants.CLIENT_ID)
+                .clientId(SecurityConstants.MSC_WEB_CLIENT_ID)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://localhost:4200/callback")
                 .redirectUri("https://oauth.pstmn.io/v1/browser-callback")
-                .scope("openid").scope("profile").scope("offline_access").scope("read").scope("write")
+                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope("offline_access").scope("read").scope("write")
                 .clientSettings(ClientSettings.builder()
-                .requireProofKey(true)
-                .requireAuthorizationConsent(true).build())
+                        .requireProofKey(true)
+                        .requireAuthorizationConsent(true).build())
                 .tokenSettings(TokenSettings.builder().accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                         .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
                         .reuseRefreshTokens(false).build())
                 .build();
         repository.save(client);
+
+        RegisteredClient existingMscClient = repository.findByClientId(SecurityConstants.MSC_WS_CLIENT_ID);
+        String registeredMscClientId = existingMscClient != null ? existingMscClient.getId() : "MSC-WS";
+        RegisteredClient mscClient = RegisteredClient.withId(registeredMscClientId)
+                .clientId(SecurityConstants.MSC_WS_CLIENT_ID)
+                .clientSecret(SecurityConstants.MSC_CLIENT_SECRET)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(false).build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                        .accessTokenTimeToLive(Duration.ofHours(1)).build())
+                .build();
+        repository.save(mscClient);
+
+        RegisteredClient existingMsaClient = repository.findByClientId(SecurityConstants.MSA_WS_CLIENT_ID);
+        String registeredMsaClientId = existingMsaClient != null ? existingMsaClient.getId() : "MSA-WS";
+        RegisteredClient msaClient = RegisteredClient.withId(registeredMsaClientId)
+                .clientId(SecurityConstants.MSA_WS_CLIENT_ID)
+                .clientSecret(SecurityConstants.MSA_CLIENT_SECRET)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope(OidcScopes.EMAIL)
+                .clientSettings(ClientSettings.builder()
+                        .requireAuthorizationConsent(false).build())
+                .tokenSettings(TokenSettings.builder()
+                        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                        .accessTokenTimeToLive(Duration.ofHours(1)).build())
+                .build();
+        repository.save(msaClient);
+
         return repository;
     }
 
@@ -128,7 +163,7 @@ public class AuthorizationServerConfig {
                     context.getClaims().claim("name", user.getPerson().getName());
                     context.getClaims().claim("lastname", user.getPerson().getLastname());
                     context.getClaims().claim("identification", user.getPerson().getIdentification());
-                        List<String> roles = new ArrayList<>(user.getRoleUsers().stream()
+                    List<String> roles = new ArrayList<>(user.getRoleUsers().stream()
                             .map(roleUser -> roleUser.getRole().getName()).toList());
                     context.getClaims().claim("roles", roles);
                 }
