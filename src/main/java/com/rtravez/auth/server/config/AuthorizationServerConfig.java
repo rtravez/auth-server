@@ -77,7 +77,7 @@ public class AuthorizationServerConfig {
                 .scope(OidcScopes.OPENID).scope(OidcScopes.PROFILE).scope("offline_access").scope("read").scope("write")
                 .clientSettings(ClientSettings.builder()
                         .requireProofKey(true)
-                        .requireAuthorizationConsent(true).build())
+                        .requireAuthorizationConsent(false).build())
                 .tokenSettings(TokenSettings.builder().accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
                         .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
                         .reuseRefreshTokens(false).build())
