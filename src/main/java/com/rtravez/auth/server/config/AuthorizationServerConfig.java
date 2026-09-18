@@ -8,6 +8,7 @@ import com.rtravez.auth.server.entity.UserEntity;
 import com.rtravez.auth.server.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -15,7 +16,11 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService;
+import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
+import org.springframework.security.oauth2.server.authorization.client.JdbcRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -36,6 +41,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Configuration
 public class AuthorizationServerConfig {
@@ -53,8 +59,8 @@ public class AuthorizationServerConfig {
     }
 
     @Bean
-    RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient client = RegisteredClient.withId(UUID.randomUUID().toString())
+    RegisteredClientRepository registeredClientRepository(JdbcTemplate jdbcTemplate) {
+        RegisteredClient client = RegisteredClient.withId("rtravez-web")
                 .clientId(SecurityConstants.CLIENT_ID)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
@@ -67,7 +73,23 @@ public class AuthorizationServerConfig {
                         .accessTokenTimeToLive(Duration.ofHours(1)).refreshTokenTimeToLive(Duration.ofDays(1))
                         .reuseRefreshTokens(false).build())
                 .build();
-        return new InMemoryRegisteredClientRepository(client);
+        JdbcRegisteredClientRepository repository = new JdbcRegisteredClientRepository(jdbcTemplate);
+        if (repository.findByClientId(client.getClientId()) == null) {
+            repository.save(client);
+        }
+        return repository;
+    }
+
+    @Bean
+    OAuth2AuthorizationService authorizationService(
+            JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+        return new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository);
+    }
+
+    @Bean
+    OAuth2AuthorizationConsentService authorizationConsentService(
+            JdbcTemplate jdbcTemplate, RegisteredClientRepository registeredClientRepository) {
+        return new JdbcOAuth2AuthorizationConsentService(jdbcTemplate, registeredClientRepository);
     }
 
     @Bean
@@ -104,7 +126,7 @@ public class AuthorizationServerConfig {
                     context.getClaims().claim("lastname", user.getPerson().getLastname());
                     context.getClaims().claim("identification", user.getPerson().getIdentification());
                     List<String> roles = user.getRoleUsers().stream()
-                            .map(roleUser -> roleUser.getRole().getName()).toList();
+                            .map(roleUser -> roleUser.getRole().getName()).collect(Collectors.toList());
                     context.getClaims().claim("roles", roles);
                 }
             }
