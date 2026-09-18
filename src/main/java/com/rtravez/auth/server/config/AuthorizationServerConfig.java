@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -51,7 +52,7 @@ public class AuthorizationServerConfig {
     private String issuerUri;
 
     @Bean
-    // @Order(1)
+        @Order(1)
     SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServer = OAuth2AuthorizationServerConfigurer
                 .authorizationServer();

@@ -2,6 +2,7 @@ package com.rtravez.auth.server.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -20,7 +21,7 @@ import java.util.List;
 @EnableMethodSecurity(securedEnabled = true)
 public class SpringSecurityConfig {
     @Bean
-    //@Order(2)
+    @Order(2)
     SecurityFilterChain applicationSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/login", "/error", "/oauth2/**", "/.well-known/**", "/v3/api-docs/**",
